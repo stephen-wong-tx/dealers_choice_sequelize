@@ -1,6 +1,8 @@
 const { Sequelize, DataTypes, STRING, DECIMAL, UUID, UUIDV4 } = require('sequelize');
 
-const db = new Sequelize(process.env.DATABASE_URL || 'postgres:localhost/fourteenerSequelize');
+// const db = new Sequelize(process.env.DATABASE_URL || 'postgres:localhost/fourteenerSequelize');
+
+
 
 const mountainData = [
   {   "ID": 1,   "Mountain Peak": "Mount Elbert",   "Mountain Range": "Sawatch Range",   "RangeID": 6,   "Elevation_ft": 14440,   "fourteener": "Y",   "Prominence_ft": 9093,   "Isolation_mi": 670,   "Lat": 39.1178,   "Long": -106.4454,   "Standard Route": "Northeast Ridge ",   "Distance_mi": 9.5,   "Elevation Gain_ft": 4700,   "DifficultyDescription": "Class 1",   "Difficulty": 1,   "Traffic Low": 20000,   "Traffic High": 25000,   "photo": "https://www.14ers.com/photos/mtelbert/peakphotos/large/201207_Elbert01.jpg" },
@@ -65,24 +67,41 @@ const mountainData = [
 
 const rangeData = [
   {
+    ID: 1,
     Name: 'Elk Mountains'
   },
   {
+    ID: 2,
     Name: 'Front Range'
   },
   {
+    ID: 3,
     Name: 'Mosquito Range'
   },
   {
+    ID: 4,
     Name: 'San Juan Mountains'
   },
   {
+    ID: 5,
     Name: 'Sangre de Cristo Range'
   },
   {
+    ID: 6,
     Name: 'Sawatch Range'
   }
 ]
+
+const db = new Sequelize(process.env.DATABASE_URL || 'postgres:localhost/fourteenerSequelize');
+
+const syncAndSeed = async () => {
+  await db.sync({ force: true });
+  
+  const ranges = await Promise.all(rangeData.map( range => Range.create(range)));
+  await Promise.all(mountainData.map( mountain => Mountain.create({...mountain, rangeID: ranges.find( range => range.ID === mountain.RangeID ).ID})));
+}
+
+
 
 const Mountain = db.define('mountain', {
   ID: {
@@ -216,9 +235,12 @@ const Mountain = db.define('mountain', {
 
 const Range = db.define('range', {
   ID: {
-    type: UUID,
-    defaultValue: UUIDV4,
-    primaryKey: true
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    primaryKey: true,
+    validate: {
+      notEmpty: true
+    }
   },
   Name: {
     type: STRING,
@@ -229,14 +251,8 @@ const Range = db.define('range', {
   }
 });
 
-Mountain.belongsTo(Range);
 Range.hasMany(Mountain);
-
-const syncAndSeed = async () => {
-  await db.syncAndSeed({ force: true });
-  await Promise.all(mountainData.map());
-  await Promise.all(rangeData.map());
-}
+Mountain.belongsTo(Range);
 
 
 

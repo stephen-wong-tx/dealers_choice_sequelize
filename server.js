@@ -6,7 +6,7 @@ app.use(require('method-override')('_method'));
 app.use(express.urlencoded({ extended: false }));
 
 app.get('/', (req, res, next) => res.redirect('/mountains'));
-app.use('/mountains', require('.routes/mountains'));
+app.use('/mountains', require('./routes/mountains'));
 
 const init = async() => {
   await db.syncAndSeed();
